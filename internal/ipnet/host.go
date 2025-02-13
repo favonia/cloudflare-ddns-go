@@ -12,9 +12,6 @@ type HostID interface {
 	// Describe prints the HostID.
 	Describe() string
 
-	// Mask clears the higher bits.
-	Mask() HostID
-
 	// WithPrefix calculates the new address with a prefix.
 	WithPrefix(prefix netip.Prefix) (netip.Addr, bool)
 }
@@ -33,32 +30,22 @@ func mask(s int) byte {
 }
 
 // IP6Suffix represents a suffix of an IPv6 address.
-type IP6Suffix struct {
-	Bytes     [16]byte
-	PrefixLen int
-}
+type IP6Suffix [16]byte
 
 // Describe prints the suffix as an IPv6 address.
-func (r IP6Suffix) Describe() string { return netip.AddrFrom16(r.Bytes).String() }
+func (r IP6Suffix) Describe() string { return netip.AddrFrom16(r).String() }
 
-func (r IP6Suffix) mask() IP6Suffix {
-	for i := range r.PrefixLen / 8 {
-		r.Bytes[i] = 0
+func (r IP6Suffix) mask(prefixLen int) IP6Suffix {
+	for i := range prefixLen / 8 {
+		r[i] = 0
 	}
-	r.Bytes[r.PrefixLen/8] &= mask(r.PrefixLen % 8)
+	r[prefixLen/8] &= mask(prefixLen % 8)
 	return r
 }
 
-// Mask clears the higher bits of a suffix.
-func (r IP6Suffix) Mask() HostID { return r.mask() }
-
 // WithPrefix combines a prefix and a host ID to construct an IPv6 address.
 func (r IP6Suffix) WithPrefix(prefix netip.Prefix) (netip.Addr, bool) {
-	if prefix.Bits() != r.PrefixLen {
-		return netip.Addr{}, false
-	}
-
-	ip := r.mask().Bytes
+	ip := r.mask(prefix.Bits())
 	prefixAsBytes := prefix.Masked().Addr().As16()
 	for i := range 128 / 8 {
 		ip[i] |= prefixAsBytes[i]
@@ -133,10 +120,7 @@ func ParseHost(s string, prefixLen int) (HostID, error) {
 			return nil, ErrHostIDHasIP6Zone
 		}
 
-		return IP6Suffix{
-			Bytes:     ip.As16(),
-			PrefixLen: prefixLen,
-		}, nil
+		return IP6Suffix(ip.As16()).mask(prefixLen), nil
 	}
 
 	// Possible formats for MAC (EUI-48)
