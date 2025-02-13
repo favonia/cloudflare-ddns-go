@@ -34,7 +34,7 @@ func TestParseDomainHostIDList(t *testing.T) {
 		"hosts": {
 			" a.a [ ::  ],,,,,, *.c [aa:bb:cc:dd:ee:ff] ", true,
 			ds{
-				{f("a.a"), ipnet.IP6Suffix{PrefixLen: 64}},
+				{f("a.a"), ipnet.IP6Suffix{Bytes: [16]byte{}, PrefixLen: 64}},
 				{w("c"), ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}},
 			},
 			nil,

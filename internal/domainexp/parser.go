@@ -154,7 +154,9 @@ func scanDomainList(ppfmt pp.PP, key string, input string, tokens []string) ([]d
 	return domains, tokens
 }
 
-func scanDomainHostIDList(ppfmt pp.PP, key string, input string, tokens []string, prefixLen int) ([]DomainHostID, []string) {
+func scanDomainHostIDList(ppfmt pp.PP, key string, input string, tokens []string, prefixLen int) (
+	[]DomainHostID, []string,
+) {
 	list, tokens := scanTaggedList(ppfmt, key, input, tokens)
 	domains := make([]DomainHostID, 0, len(list))
 	for _, raw := range list {
@@ -336,8 +338,10 @@ func scanExpression(ppfmt pp.PP, key string, input string, tokens []string) (pre
 	return nil, nil
 }
 
-// Parse takes a scanner and return the result
-func Parse[T any](ppfmt pp.PP, key string, input string, scan func(pp.PP, string, string, []string) (T, []string)) (T, bool) {
+// Parse takes a scanner and return the result.
+func Parse[T any](ppfmt pp.PP, key string, input string,
+	scan func(pp.PP, string, string, []string) (T, []string),
+) (T, bool) {
 	var zero T
 
 	tokens, ok := tokenize(ppfmt, key, input)

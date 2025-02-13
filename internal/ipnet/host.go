@@ -108,10 +108,10 @@ func (e EUI48) WithPrefix(prefix netip.Prefix) (netip.Addr, bool) {
 
 // Errors from ParseHost.
 var (
-	ErrNegativeLength     = errors.New("negative prefix length")
-	ErrNotHostID          = errors.New("not an IPv6 or MAC (EUI-48) address")
-	ErrHostIDHasIP6Zone   = errors.New("IPv6 address as a host ID should not have IPv6 zone")
-	ErrSubnetTooSmallIPv6 = errors.New("IPv6 subnet is too small; decrease the value of IP6_PREFIX_LEN")
+	ErrInvalidPrefixLength = errors.New("invalid prefix length")
+	ErrNotHostID           = errors.New("not an IPv6 or MAC (EUI-48) address")
+	ErrHostIDHasIP6Zone    = errors.New("IPv6 address as a host ID should not have IPv6 zone")
+	ErrSubnetTooSmallIPv6  = errors.New("IPv6 subnet is too small; decrease the value of IP6_PREFIX_LEN")
 )
 
 // ParseHost parses a host ID for an IPv6 address.
@@ -120,8 +120,8 @@ func ParseHost(s string, prefixLen int) (HostID, error) {
 		return nil, nil //nolint:nilnil
 	}
 
-	if prefixLen < 0 {
-		return nil, ErrNegativeLength
+	if prefixLen < 0 || prefixLen > 128 {
+		return nil, ErrInvalidPrefixLength
 	}
 
 	ip, errIP := netip.ParseAddr(s)
@@ -131,9 +131,6 @@ func ParseHost(s string, prefixLen int) (HostID, error) {
 		}
 		if ip.Zone() != "" {
 			return nil, ErrHostIDHasIP6Zone
-		}
-
-		if prefixLen < 0 || prefixLen > 128 {
 		}
 
 		return IP6Suffix{
