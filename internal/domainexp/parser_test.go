@@ -3,7 +3,6 @@ package domainexp_test
 
 import (
 	"errors"
-	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/favonia/cloudflare-ddns/internal/domain"
 	"github.com/favonia/cloudflare-ddns/internal/domainexp"
+	"github.com/favonia/cloudflare-ddns/internal/ipnet"
 	"github.com/favonia/cloudflare-ddns/internal/mocks"
 	"github.com/favonia/cloudflare-ddns/internal/pp"
 )
@@ -18,7 +18,6 @@ import (
 func TestParseDomainHostIDList(t *testing.T) {
 	t.Parallel()
 	key := "key"
-	noHost := netip.Addr{}
 	type f = domain.FQDN
 	type w = domain.Wildcard
 	type ds = []domainexp.DomainHostID
@@ -35,14 +34,14 @@ func TestParseDomainHostIDList(t *testing.T) {
 		"hosts": {
 			" a.a [ ::  ],,,,,, *.c [aa:bb:cc:dd:ee:ff] ", true,
 			ds{
-				{f("a.a"), },
-				{w("c"), netip.MustParseAddr("::a8bb:ccff:fedd:eeff")},
+				{f("a.a"), ipnet.IP6Suffix{PrefixLen: 64}},
+				{w("c"), ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}},
 			},
 			nil,
 		},
 		"missing-comma": {
 			" a.a a.b a.c a.d ", true,
-			ds{{f("a.a"), noHost}, {f("a.b"), noHost}, {f("a.c"), noHost}, {f("a.d"), noHost}},
+			ds{{f("a.a"), nil}, {f("a.b"), nil}, {f("a.c"), nil}, {f("a.d"), nil}},
 			func(m *mocks.MockPP) {
 				gomock.InOrder(
 					m.EXPECT().Noticef(pp.EmojiUserError, `%s (%q) is missing a comma "," before %q`, key, " a.a a.b a.c a.d ", "a.b"),
@@ -67,7 +66,7 @@ func TestParseDomainHostIDList(t *testing.T) {
 				tc.prepareMockPP(mockPP)
 			}
 
-			list, ok := domainexp.ParseDomainHostIDList(mockPP, key, tc.input)
+			list, ok := domainexp.ParseDomainHostIDList(mockPP, key, tc.input, 64)
 			require.Equal(t, tc.ok, ok)
 			require.Equal(t, tc.expected, list)
 		})

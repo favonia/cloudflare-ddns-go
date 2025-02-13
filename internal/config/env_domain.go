@@ -40,6 +40,8 @@ func processDomainHostIDMap(ppfmt pp.PP,
 ) ([]domain.Domain, bool) {
 	domains := make([]domain.Domain, 0, len(domainHostIDs))
 	for _, dh := range domainHostIDs {
+		domains = append(domains, dh.Domain)
+
 		if dh.HostID == nil {
 			continue
 		}
@@ -51,7 +53,8 @@ func processDomainHostIDMap(ppfmt pp.PP,
 			)
 			return nil, false
 		}
-		domains = append(domains, dh.Domain)
+
+		hostID[dh.Domain] = dh.HostID
 	}
 	return domains, true
 }
