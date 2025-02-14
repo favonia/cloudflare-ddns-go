@@ -61,3 +61,39 @@ func TestHostIDWithPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestParseHostID(t *testing.T) {
+	t.Parallel()
+	for name, tc := range map[string]struct {
+		input     string
+		prefixLen int
+		err       error
+		hostID    ipnet.HostID
+	}{
+		"empty": {
+			"",
+			40,
+			nil,
+			nil,
+		},
+		"ip6suffix": {
+			"11:2233:4455:6677:8899:aabb:ccdd:eeff",
+			40,
+			nil,
+			ipnet.IP6Suffix{0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+		},
+		"mac": {
+			"aa:bb:cc:dd:ee:ff",
+			40,
+			nil,
+			ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			hostID, err := ipnet.ParseHost(tc.input, tc.prefixLen)
+			require.Equal(t, tc.hostID, hostID)
+			require.Equal(t, tc.err, err)
+		})
+	}
+}
