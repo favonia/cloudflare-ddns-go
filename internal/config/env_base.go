@@ -135,7 +135,7 @@ func ReadIP6PrefixLen(ppfmt pp.PP, key string, field *int) bool {
 		return false
 
 	case res > 64:
-		ppfmt.Noticef(pp.EmojiUserWarning, "%s (%d) is usually less than 64 for IPv6 prefix delegation", key, res)
+		ppfmt.Noticef(pp.EmojiUserWarning, "%s (%d) is usually less than or equal to 64 for IPv6 prefix delegation", key, res)
 		return false
 
 	default:
