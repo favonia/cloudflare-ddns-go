@@ -56,14 +56,8 @@ func (r IP6Suffix) WithPrefix(prefix netip.Prefix) (netip.Addr, bool) {
 // EUI48 represents a MAC (EUI-48) address.
 type EUI48 [6]byte
 
-// MaxPrefixLen always returns 64.
-func (EUI48) MaxPrefixLen() int { return 64 }
-
 // Describe prints the suffix as a MAC address.
 func (e EUI48) Describe() string { return net.HardwareAddr(e[:]).String() }
-
-// Mask clears the higher bits of a suffix.
-func (e EUI48) Mask() HostID { return e }
 
 // WithPrefix combines a prefix and a host ID to construct an IPv6 address.
 func (e EUI48) WithPrefix(prefix netip.Prefix) (netip.Addr, bool) {
