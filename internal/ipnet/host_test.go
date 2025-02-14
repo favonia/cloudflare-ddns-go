@@ -70,13 +70,8 @@ func TestParseHostID(t *testing.T) {
 		err       error
 		hostID    ipnet.HostID
 	}{
-		"empty": {
-			"",
-			40,
-			nil,
-			nil,
-		},
-		"ip6suffix": {
+		"empty": {"", 40, nil, nil},
+		"ip6": {
 			"11:2233:4455:6677:8899:aabb:ccdd:eeff",
 			40,
 			nil,
@@ -88,12 +83,15 @@ func TestParseHostID(t *testing.T) {
 			nil,
 			ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
 		},
+		"-1":         {"", -1, ipnet.ErrInvalidPrefixLength, nil},
+		"ip4":        {"1.1.1.1", 40, ipnet.ErrNotHostID, nil},
+		"ill-formed": {"1:1:1:1", 40, ipnet.ErrNotHostID, nil},
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			hostID, err := ipnet.ParseHost(tc.input, tc.prefixLen)
 			require.Equal(t, tc.hostID, hostID)
-			require.Equal(t, tc.err, err)
+			require.ErrorIs(t, err, tc.err)
 		})
 	}
 }
