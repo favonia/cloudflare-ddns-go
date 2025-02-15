@@ -347,6 +347,12 @@ func TestReadIP6PrefixLen(t *testing.T) {
 				m.EXPECT().Infof(pp.EmojiBullet, "Use default %s=%d", key, 96)
 			},
 		},
+		"96": {
+			true, "   96", 12, 96, false,
+			func(m *mocks.MockPP) {
+				m.EXPECT().Noticef(pp.EmojiUserWarning, "%s (%d) is usually less than or equal to 64 for IPv6 prefix delegation", key, 96)
+			},
+		},
 		"zero": {true, "0   ", 96, 0, true, nil},
 		"-1": {
 			true, "   -1", 96, 96, false,
