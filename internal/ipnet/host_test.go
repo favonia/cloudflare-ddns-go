@@ -52,6 +52,12 @@ func TestHostIDWithPrefix(t *testing.T) {
 			true,
 			netip.MustParseAddr("1122::a8bb:ccff:fedd:eeff"),
 		},
+		"mac/96": {
+			ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+			netip.MustParsePrefix("1122::/96"),
+			false,
+			netip.Addr{},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -77,11 +83,23 @@ func TestParseHostID(t *testing.T) {
 			nil,
 			ipnet.IP6Suffix{0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
 		},
+		"ip6/zone": {
+			"11:2233:4455:6677:8899:aabb:ccdd:eeff%eth0",
+			40,
+			ipnet.ErrHostIDHasIP6Zone,
+			nil,
+		},
 		"mac": {
 			"aa:bb:cc:dd:ee:ff",
 			40,
 			nil,
 			ipnet.EUI48{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff},
+		},
+		"mac/96": {
+			"aa:bb:cc:dd:ee:ff",
+			96,
+			ipnet.ErrIP6SubnetTooSmall,
+			nil,
 		},
 		"-1":         {"", -1, ipnet.ErrInvalidPrefixLength, nil},
 		"ip4":        {"1.1.1.1", 40, ipnet.ErrNotHostID, nil},
