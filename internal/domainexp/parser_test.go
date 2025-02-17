@@ -50,7 +50,7 @@ func TestParseDomainHostIDList(t *testing.T) {
 				)
 			},
 		},
-		"illformed/1": {
+		"ill-formed/1": {
 			"&", false, nil,
 			func(m *mocks.MockPP) {
 				m.EXPECT().Noticef(pp.EmojiUserError, "%s (%q) is ill-formed: %v", key, "&", domainexp.ErrSingleAnd)
