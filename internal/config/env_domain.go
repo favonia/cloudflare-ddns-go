@@ -18,9 +18,9 @@ func ReadDomains(ppfmt pp.PP, key string, field *[]domain.Domain) bool {
 	return false
 }
 
-// ReadDomainHostIDs reads an environment variable as a comma-separated list of domains.
-func ReadDomainHostIDs(ppfmt pp.PP, key string, field *[]domainexp.DomainHostID, prefixLen int) bool {
-	if list, ok := domainexp.ParseDomainHostIDList(ppfmt, key, Getenv(key), prefixLen); ok {
+// ReadDomainHostIDs reads an environment variable as a comma-separated list of domains with optional IPv6 host IDs.
+func ReadDomainHostIDs(ppfmt pp.PP, key string, field *[]domainexp.DomainHostID) bool {
+	if list, ok := domainexp.ParseDomainHostIDList(ppfmt, key, Getenv(key)); ok {
 		*field = list
 		return true
 	}
@@ -48,7 +48,7 @@ func processDomainHostIDMap(ppfmt pp.PP,
 
 		if val, ok := hostID[dh.Domain]; ok && val != dh.HostID {
 			ppfmt.Noticef(pp.EmojiUserError,
-				"Domain %q is associated with inconsistent host IDs %s and %s",
+				"Domain %q is associated with different host IDs %s and %s",
 				dh.Domain, val, dh.HostID,
 			)
 			return nil, false
@@ -64,7 +64,6 @@ func processDomainHostIDMap(ppfmt pp.PP,
 func ReadDomainMap(ppfmt pp.PP,
 	fieldDomains *map[ipnet.Type][]domain.Domain,
 	fieldHostID *map[domain.Domain]ipnet.HostID,
-	prefixLen int,
 ) bool {
 	var (
 		domains          []domain.Domain
@@ -73,7 +72,7 @@ func ReadDomainMap(ppfmt pp.PP,
 	)
 	if !ReadDomains(ppfmt, "DOMAINS", &domains) ||
 		!ReadDomains(ppfmt, "IP4_DOMAINS", &ip4Domains) ||
-		!ReadDomainHostIDs(ppfmt, "IP6_DOMAINS", &ip6DomainHostIDs, prefixLen) {
+		!ReadDomainHostIDs(ppfmt, "IP6_DOMAINS", &ip6DomainHostIDs) {
 		return false
 	}
 

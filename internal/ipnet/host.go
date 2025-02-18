@@ -89,18 +89,12 @@ func (e EUI48) WithPrefix(prefix netip.Prefix) (netip.Addr, bool) {
 
 // Errors from ParseHost.
 var (
-	ErrInvalidPrefixLength = errors.New("invalid prefix length")
-	ErrNotHostID           = errors.New("not an IPv6 or MAC (EUI-48) address")
-	ErrHostIDHasIP6Zone    = errors.New("IPv6 address as a host ID should not have IPv6 zone")
-	ErrIP6SubnetTooSmall   = errors.New("IPv6 subnet is too small; decrease the value of IP6_PREFIX_LEN")
+	ErrNotHostID        = errors.New("not an IPv6 or MAC (EUI-48) address")
+	ErrHostIDHasIP6Zone = errors.New("IPv6 address as a host ID should not have IPv6 zone")
 )
 
 // ParseHost parses a host ID for an IPv6 address.
-func ParseHost(s string, prefixLen int) (HostID, error) {
-	if prefixLen < 0 || prefixLen > 128 {
-		return nil, ErrInvalidPrefixLength
-	}
-
+func ParseHost(s string) (HostID, error) {
 	if s == "" {
 		return nil, nil //nolint:nilnil
 	}
@@ -114,7 +108,7 @@ func ParseHost(s string, prefixLen int) (HostID, error) {
 			return nil, ErrHostIDHasIP6Zone
 		}
 
-		return IP6Suffix(ip.As16()).mask(prefixLen), nil
+		return IP6Suffix(ip.As16()), nil
 	}
 
 	// Possible formats for MAC (EUI-48)
@@ -123,10 +117,7 @@ func ParseHost(s string, prefixLen int) (HostID, error) {
 	// 0000.5e00.5301
 	mac, errMAC := net.ParseMAC(s)
 	if errMAC != nil || len(mac) != 6 {
-		return nil, fmt.Errorf("%w; error when parsed as an IP address: %w", ErrNotHostID, errIP)
-	}
-	if prefixLen > 64 {
-		return nil, ErrIP6SubnetTooSmall
+		return nil, fmt.Errorf("%w: as IPv6 address, %w; as EUI48 address, %w", ErrNotHostID, errIP, errMAC)
 	}
 	return EUI48(mac), nil
 }

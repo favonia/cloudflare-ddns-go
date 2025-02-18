@@ -66,7 +66,7 @@ func TestParseDomainHostIDList(t *testing.T) {
 				tc.prepareMockPP(mockPP)
 			}
 
-			list, ok := domainexp.ParseDomainHostIDList(mockPP, key, tc.input, 64)
+			list, ok := domainexp.ParseDomainHostIDList(mockPP, key, tc.input)
 			require.Equal(t, tc.ok, ok)
 			require.Equal(t, tc.expected, list)
 		})

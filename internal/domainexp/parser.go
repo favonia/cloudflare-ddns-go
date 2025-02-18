@@ -125,12 +125,12 @@ func parseDomain(ppfmt pp.PP, key string, input string, s string) (domain.Domain
 	return d, true
 }
 
-func parseHost(ppfmt pp.PP, key string, input string, s string, prefixLen int) (ipnet.HostID, bool) {
+func parseHost(ppfmt pp.PP, key string, input string, s string) (ipnet.HostID, bool) {
 	if s == "" {
 		return nil, true
 	}
 
-	h, err := ipnet.ParseHost(s, prefixLen)
+	h, err := ipnet.ParseHost(s)
 	if err != nil {
 		ppfmt.Noticef(pp.EmojiUserError,
 			"%s (%q) contains an ill-formed host ID %q: %v",
@@ -154,7 +154,7 @@ func scanDomainList(ppfmt pp.PP, key string, input string, tokens []string) ([]d
 	return domains, tokens
 }
 
-func scanDomainHostIDList(ppfmt pp.PP, key string, input string, tokens []string, prefixLen int) (
+func scanDomainHostIDList(ppfmt pp.PP, key string, input string, tokens []string) (
 	[]DomainHostID, []string,
 ) {
 	list, tokens := scanTaggedList(ppfmt, key, input, tokens)
@@ -164,7 +164,7 @@ func scanDomainHostIDList(ppfmt pp.PP, key string, input string, tokens []string
 		if !ok {
 			return nil, nil
 		}
-		h, ok := parseHost(ppfmt, key, input, raw.Tag, prefixLen)
+		h, ok := parseHost(ppfmt, key, input, raw.Tag)
 		if !ok {
 			return nil, nil
 		}
@@ -361,10 +361,8 @@ func Parse[T any](ppfmt pp.PP, key string, input string,
 }
 
 // ParseDomainHostIDList parses a list of comma-separated domains. Internationalized domain names are fully supported.
-func ParseDomainHostIDList(ppfmt pp.PP, key string, input string, prefixLen int) ([]DomainHostID, bool) {
-	return Parse(ppfmt, key, input, func(ppfmt pp.PP, key, input string, tokens []string) ([]DomainHostID, []string) {
-		return scanDomainHostIDList(ppfmt, key, input, tokens, prefixLen)
-	})
+func ParseDomainHostIDList(ppfmt pp.PP, key string, input string) ([]DomainHostID, bool) {
+	return Parse(ppfmt, key, input, scanDomainHostIDList)
 }
 
 // ParseDomainList parses a list of comma-separated domains. Internationalized domain names are fully supported.

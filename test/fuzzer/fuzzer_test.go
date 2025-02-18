@@ -61,7 +61,7 @@ func FuzzParseDomainHostIDList(f *testing.F) {
 		mockPP.EXPECT().Noticef(pp.EmojiUserError, `%s (%q) has unexpected token %q when %q is expected`, key, input, gomock.Any(), gomock.Any()).AnyTimes()
 		mockPP.EXPECT().Noticef(pp.EmojiUserError, `%s (%q) has unexpected token %q when a host ID is expected`, key, input, gomock.Any()).AnyTimes()
 
-		_, _ = domainexp.ParseDomainHostIDList(mockPP, key, input, 64)
+		_, _ = domainexp.ParseDomainHostIDList(mockPP, key, input)
 	})
 }
 
