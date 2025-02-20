@@ -198,32 +198,39 @@ func TestReadDomainHostIDs(t *testing.T) {
 
 //nolint:paralleltest // environment vars are global
 func TestReadDomainMap(t *testing.T) {
+	type h = ipnet.HostID
+	type f = domain.FQDN
+	type w = domain.Wildcard
 	for name, tc := range map[string]struct {
 		domains        string
 		ip4Domains     string
 		ip6Domains     string
 		expectedDomain map[ipnet.Type][]domain.Domain
-		expectedHostID map[domain.Domain]ipnet.HostID
+		expectedHostID map[domain.Domain]h
 		ok             bool
 		prepareMockPP  func(*mocks.MockPP)
 	}{
 		"full": {
-			"  a1.com, a2.com", "b1.com,  b2.com,b2.com", "c1.com,c2.com",
+			"  a1.com, a2.com", "b1.com,  b2.com,b2.com", "c1.com,c2.com[::1]",
 			map[ipnet.Type][]domain.Domain{
-				ipnet.IP4: {domain.FQDN("a1.com"), domain.FQDN("a2.com"), domain.FQDN("b1.com"), domain.FQDN("b2.com")},
-				ipnet.IP6: {domain.FQDN("a1.com"), domain.FQDN("a2.com"), domain.FQDN("c1.com"), domain.FQDN("c2.com")},
+				ipnet.IP4: {f("a1.com"), f("a2.com"), f("b1.com"), f("b2.com")},
+				ipnet.IP6: {f("a1.com"), f("a2.com"), f("c1.com"), f("c2.com")},
 			},
-			map[domain.Domain]ipnet.HostID{},
+			map[domain.Domain]h{
+				f("c2.com"): ipnet.IP6Suffix{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01},
+			},
 			true,
 			nil,
 		},
 		"duplicate": {
-			"  a1.com, a1.com", "a1.com,  a1.com,a1.com", "*.a1.com,a1.com,*.a1.com,*.a1.com",
+			"  a1.com, a1.com", "a1.com,  a1.com,a1.com", "*.a1.com,a1.com,*.a1.com[::2],*.a1.com[::0:2]",
 			map[ipnet.Type][]domain.Domain{
-				ipnet.IP4: {domain.FQDN("a1.com")},
-				ipnet.IP6: {domain.FQDN("a1.com"), domain.Wildcard("a1.com")},
+				ipnet.IP4: {f("a1.com")},
+				ipnet.IP6: {f("a1.com"), w("a1.com")},
 			},
-			map[domain.Domain]ipnet.HostID{},
+			map[domain.Domain]h{
+				w("a1.com"): ipnet.IP6Suffix{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x02},
+			},
 			true,
 			nil,
 		},
@@ -233,7 +240,7 @@ func TestReadDomainMap(t *testing.T) {
 				ipnet.IP4: {},
 				ipnet.IP6: {},
 			},
-			map[domain.Domain]ipnet.HostID{},
+			map[domain.Domain]h{},
 			true,
 			nil,
 		},
@@ -252,7 +259,7 @@ func TestReadDomainMap(t *testing.T) {
 			store(t, "IP6_DOMAINS", tc.ip6Domains)
 
 			var fieldDomain map[ipnet.Type][]domain.Domain
-			var fieldHostID map[domain.Domain]ipnet.HostID
+			var fieldHostID map[domain.Domain]h
 			mockPP := mocks.NewMockPP(mockCtrl)
 			if tc.prepareMockPP != nil {
 				tc.prepareMockPP(mockPP)
