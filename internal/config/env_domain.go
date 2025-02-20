@@ -49,7 +49,7 @@ func processDomainHostIDMap(ppfmt pp.PP,
 		if val, ok := hostID[dh.Domain]; ok && val != dh.HostID {
 			ppfmt.Noticef(pp.EmojiUserError,
 				"Domain %q is associated with different host IDs %s and %s",
-				dh.Domain, val, dh.HostID,
+				dh.Domain.Describe(), val.Describe(), dh.HostID.Describe(),
 			)
 			return nil, false
 		}

@@ -250,6 +250,12 @@ func TestReadDomainMap(t *testing.T) {
 				m.EXPECT().Noticef(pp.EmojiUserError, "%s (%q) contains an ill-formed domain %q: %v", "IP6_DOMAINS", "*.*", "*.*", gomock.Any())
 			},
 		},
+		"ill-formed/different-host-ids": {
+			" ", "   ", "a.com[::1],a.com[::2]", nil, nil, false,
+			func(m *mocks.MockPP) {
+				m.EXPECT().Noticef(pp.EmojiUserError, "Domain %q is associated with different host IDs %s and %s", "a.com", "::1", "::2")
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
